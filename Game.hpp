@@ -44,6 +44,10 @@ struct Player {
 
 	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 	std::string name = "";
+
+	// true if player can move vertically only 
+	// false if they can move horizontally only
+	bool isVertical = false; 
 };
 
 struct Game {
@@ -52,7 +56,9 @@ struct Game {
 	void remove_player(Player *); //remove player from game (may also, e.g., play some despawn anim)
 
 	std::mt19937 mt; //used for spawning players
-	uint32_t next_player_number = 1; //used for naming players
+	//used for naming players
+	// and defining isVertical based on player number
+	uint32_t next_player_number = 1; 
 
 	Game();
 

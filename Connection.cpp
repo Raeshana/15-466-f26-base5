@@ -44,7 +44,6 @@ typedef int ssize_t;
 
 //Also, some help and examples for getaddrinfo from: https://beej.us/guide/bgnet/html/multi/syscalls.html
 
-
 void Connection::close() {
 	if (socket != InvalidSocket) {
 		::closesocket(socket);

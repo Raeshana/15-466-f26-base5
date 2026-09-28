@@ -95,6 +95,8 @@ Player *Game::spawn_player() {
 
 	player.name = "Player " + std::to_string(next_player_number++);
 
+	player.isVertical = next_player_number%2; // 0 or 1 i.e. false or true
+
 	return &player;
 }
 
@@ -113,33 +115,39 @@ void Game::remove_player(Player *player) {
 void Game::update(float elapsed) {
 	//position/velocity update:
 	for (auto &p : players) {
-		glm::vec2 dir = glm::vec2(0.0f, 0.0f);
-		if (p.controls.left.pressed) dir.x -= 1.0f;
-		if (p.controls.right.pressed) dir.x += 1.0f;
-		if (p.controls.down.pressed) dir.y -= 1.0f;
-		if (p.controls.up.pressed) dir.y += 1.0f;
+		glm::vec2 dir = glm::vec2(0.0f, 0.0f);		
+
+		// Only let vertical players move vertically
+		if (p.isVertical){
+			if (p.controls.down.pressed) dir.y -= 1.0f;
+			if (p.controls.up.pressed) dir.y += 1.0f;
+		}
+		// Only let horizontal players move horizontally
+		else {
+			if (p.controls.left.pressed) dir.x -= 1.0f;
+			if (p.controls.right.pressed) dir.x += 1.0f;
+		}
 
 		if (dir == glm::vec2(0.0f)) {
-			//no inputs: just drift to a stop
-			float amt = 1.0f - std::pow(0.5f, elapsed / (PlayerAccelHalflife * 2.0f));
-			p.velocity = glm::mix(p.velocity, glm::vec2(0.0f,0.0f), amt);
+			//no inputs: stop moving unless pushed
+			if (p.isVertical) {
+				p.velocity = glm::vec2(p.velocity.x,0.0f); // horizontal movement can change
+			} 
+			else { // horizontal
+				p.velocity = glm::vec2(0.0f,p.velocity.y); // vertical movement can change
+			}
 		} else {
 			//inputs: tween velocity to target direction
 			dir = glm::normalize(dir);
 
 			float amt = 1.0f - std::pow(0.5f, elapsed / PlayerAccelHalflife);
 
-			//accelerate along velocity (if not fast enough):
-			float along = glm::dot(p.velocity, dir);
-			if (along < PlayerSpeed) {
-				along = glm::mix(along, PlayerSpeed, amt);
-			}
-
+			//do not accelerate along velocity
 			//damp perpendicular velocity:
 			float perp = glm::dot(p.velocity, glm::vec2(-dir.y, dir.x));
 			perp = glm::mix(perp, 0.0f, amt);
 
-			p.velocity = dir * along + glm::vec2(-dir.y, dir.x) * perp;
+			p.velocity = dir + glm::vec2(-dir.y, dir.x) * perp;
 		}
 		p.position += p.velocity * elapsed;
 
@@ -155,34 +163,43 @@ void Game::update(float elapsed) {
 	for (auto &p1 : players) {
 		//player/player collisions:
 		for (auto &p2 : players) {
-			if (&p1 == &p2) break;
+			if (&p1 == &p2) continue;
 			glm::vec2 p12 = p2.position - p1.position;
 			float len2 = glm::length2(p12);
-			if (len2 > (2.0f * PlayerRadius) * (2.0f * PlayerRadius)) continue;
-			if (len2 == 0.0f) continue;
-			glm::vec2 dir = p12 / std::sqrt(len2);
-			//mirror velocity to be in separating direction:
-			glm::vec2 v12 = p2.velocity - p1.velocity;
-			glm::vec2 delta_v12 = dir * glm::max(0.0f, -1.75f * glm::dot(dir, v12));
-			p2.velocity += 0.5f * delta_v12;
-			p1.velocity -= 0.5f * delta_v12;
+
+			// if p1 and p2 are less than 2 radii apart
+			if (len2 < (2.0f * PlayerRadius) * (2.0f * PlayerRadius)) { // squared
+				// if p1 collides with p2
+				// move p2 vertically if p1 is vertical
+				// If p1 collides with p2, push p2 in p1's movement direction
+				if (p1.isVertical) {
+					p2.velocity.y = p1.velocity.y;
+				}
+				else { // p1 is horizontal
+					p2.velocity.x = p1.velocity.x;
+				}
+			}
+			else {
+				p2.velocity = glm::vec2(0.0f,0.0f);
+			}
 		}
 		//player/arena collisions:
+		// no bounce:
 		if (p1.position.x < ArenaMin.x + PlayerRadius) {
 			p1.position.x = ArenaMin.x + PlayerRadius;
-			p1.velocity.x = std::abs(p1.velocity.x);
+			// p1.velocity.x = std::abs(p1.velocity.x);
 		}
 		if (p1.position.x > ArenaMax.x - PlayerRadius) {
 			p1.position.x = ArenaMax.x - PlayerRadius;
-			p1.velocity.x =-std::abs(p1.velocity.x);
+			// p1.velocity.x =-std::abs(p1.velocity.x);
 		}
 		if (p1.position.y < ArenaMin.y + PlayerRadius) {
 			p1.position.y = ArenaMin.y + PlayerRadius;
-			p1.velocity.y = std::abs(p1.velocity.y);
+			// p1.velocity.y = std::abs(p1.velocity.y);
 		}
 		if (p1.position.y > ArenaMax.y - PlayerRadius) {
 			p1.position.y = ArenaMax.y - PlayerRadius;
-			p1.velocity.y =-std::abs(p1.velocity.y);
+			// p1.velocity.y =-std::abs(p1.velocity.y);
 		}
 	}
 
@@ -212,6 +229,8 @@ void Game::send_state_message(Connection *connection_, Player *connection_player
 		uint8_t len = uint8_t(std::min< size_t >(255, player.name.size()));
 		connection.send(len);
 		connection.send_buffer.insert(connection.send_buffer.end(), player.name.begin(), player.name.begin() + len);
+
+		connection.send(player.isVertical); // send whether player can move vertically
 	};
 
 	//player count:
@@ -270,6 +289,7 @@ bool Game::recv_state_message(Connection *connection_) {
 			read(&c);
 			player.name += c;
 		}
+		read(&player.isVertical); // read whether player can move vertically
 	}
 
 	if (at != size) throw std::runtime_error("Trailing data in state message.");
