@@ -4,10 +4,11 @@ Author: Raeshana Sookhoo
 
 Design: Player movement is restricted along one axis.
 
-Networking: A server is responsible for sharing the game state between clients.
+Networking: A server is responsible for sharing the game state and client information between clients.
+Each client uses all the information given to render their scene.
+This includes the win condition (each client checks if all clients are in the box).
 Even-numbered clients set their isVertical flag to true, indicating to ignore horizontal input for this player.
 The opposite occurs for odd-numbered clients.
-The game state stores a bool, allPayersAtExit, which 'ands' all the clients' atExit to determine if the game is won. 
 
 Screen Shot:
 
