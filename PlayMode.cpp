@@ -148,10 +148,17 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 				glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 		};
 
+		// Draw Arena
 		lines.draw(glm::vec3(Game::ArenaMin.x, Game::ArenaMin.y, 0.0f), glm::vec3(Game::ArenaMax.x, Game::ArenaMin.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 		lines.draw(glm::vec3(Game::ArenaMin.x, Game::ArenaMax.y, 0.0f), glm::vec3(Game::ArenaMax.x, Game::ArenaMax.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 		lines.draw(glm::vec3(Game::ArenaMin.x, Game::ArenaMin.y, 0.0f), glm::vec3(Game::ArenaMin.x, Game::ArenaMax.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 		lines.draw(glm::vec3(Game::ArenaMax.x, Game::ArenaMin.y, 0.0f), glm::vec3(Game::ArenaMax.x, Game::ArenaMax.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+
+		// Draw Door
+		lines.draw(glm::vec3(Game::DoorMin.x, Game::DoorMin.y, 0.0f), glm::vec3(Game::DoorMax.x, Game::DoorMin.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		lines.draw(glm::vec3(Game::DoorMin.x, Game::DoorMax.y, 0.0f), glm::vec3(Game::DoorMax.x, Game::DoorMax.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		lines.draw(glm::vec3(Game::DoorMin.x, Game::DoorMin.y, 0.0f), glm::vec3(Game::DoorMin.x, Game::DoorMax.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
+		lines.draw(glm::vec3(Game::DoorMax.x, Game::DoorMin.y, 0.0f), glm::vec3(Game::DoorMax.x, Game::DoorMax.y, 0.0f), glm::u8vec4(0xff, 0x00, 0xff, 0xff));
 
 		for (auto const &player : game.players) {
 			glm::u8vec4 col = glm::u8vec4(player.color.x*255, player.color.y*255, player.color.z*255, 0xff);
@@ -168,6 +175,7 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 					col
 				);
 			}
+			
 			for (uint32_t a = 0; a < circle.size(); ++a) {
 				lines.draw(
 					glm::vec3(player.position + Game::PlayerRadius * circle[a], 0.0f),
@@ -176,7 +184,17 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 				);
 			}
 
+			// Player name
 			draw_text(player.position + glm::vec2(0.0f, -0.1f + Game::PlayerRadius), player.name, 0.09f);
+		}
+
+		// Draw win message
+		glm::vec2 textPos;
+		textPos.x = (Game::ArenaMax.x - Game::ArenaMin.x)/2 + Game::ArenaMin.x;
+		textPos.y = (Game::ArenaMax.y - Game::ArenaMin.y)/2 + Game::ArenaMin.y;
+		
+		if (Game::allPlayersAtExit) {
+			draw_text(glm::vec2(textPos.x, textPos.y), "YAY", 0.09f);
 		}
 	}
 	GL_ERRORS();

@@ -187,20 +187,29 @@ void Game::update(float elapsed) {
 		// no bounce:
 		if (p1.position.x < ArenaMin.x + PlayerRadius) {
 			p1.position.x = ArenaMin.x + PlayerRadius;
-			// p1.velocity.x = std::abs(p1.velocity.x);
 		}
 		if (p1.position.x > ArenaMax.x - PlayerRadius) {
 			p1.position.x = ArenaMax.x - PlayerRadius;
-			// p1.velocity.x =-std::abs(p1.velocity.x);
 		}
 		if (p1.position.y < ArenaMin.y + PlayerRadius) {
 			p1.position.y = ArenaMin.y + PlayerRadius;
-			// p1.velocity.y = std::abs(p1.velocity.y);
 		}
 		if (p1.position.y > ArenaMax.y - PlayerRadius) {
 			p1.position.y = ArenaMax.y - PlayerRadius;
-			// p1.velocity.y =-std::abs(p1.velocity.y);
 		}
+
+		//player/door collision:
+		if (p1.position.x > DoorMin.x && 
+			p1.position.x < DoorMax.x &&
+			p1.position.y > DoorMin.y && 
+			p1.position.y < DoorMax.y) 
+		{
+			p1.atExit = true;
+		}
+		else {
+			p1.atExit = false;
+		}
+		allPlayersAtExit = allPlayersAtExit && p1.atExit;
 	}
 
 }
