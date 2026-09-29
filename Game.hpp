@@ -45,12 +45,12 @@ struct Player {
 	glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f);
 	std::string name = "";
 
-	//track if player is at exit for win cond.
-	bool atExit = false;
-
 	// true if player can move vertically only 
 	// false if they can move horizontally only
 	bool isVertical = false; 
+
+	//track if player is at exit for win cond.
+	bool atExit = false;
 };
 
 struct Game {
@@ -84,7 +84,7 @@ struct Game {
 	//win condiiton (door):
 	inline static constexpr glm::vec2 DoorMin = glm::vec2(-0.25f, 0.8f);
 	inline static constexpr glm::vec2 DoorMax = glm::vec2( 0.25f,  1.0f);
-	inline static bool allPlayersAtExit = true;
+	inline static bool allPlayersAtExit = false;
 	
 	//---- communication helpers ----
 

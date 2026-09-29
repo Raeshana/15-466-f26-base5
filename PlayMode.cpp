@@ -188,6 +188,17 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			draw_text(player.position + glm::vec2(0.0f, -0.1f + Game::PlayerRadius), player.name, 0.09f);
 		}
 
+		//Check win condition:
+		bool checkWin = true;
+		for (auto const &p1 : game.players) {
+			// if (allPlayersAtExit) std::cout << ("YAHOO");
+			// if (!allPlayersAtExit) std::cout << ("YEEHAW");
+			std::cout << ("allPlayers at exit BEFORE: ") << Game::allPlayersAtExit << std::endl;
+			checkWin = checkWin && p1.atExit;
+		}
+		Game::allPlayersAtExit = checkWin;
+		std::cout << ("allPlayers at exit AFTER: ") << Game::allPlayersAtExit << std::endl;
+
 		// Draw win message
 		glm::vec2 textPos;
 		textPos.x = (Game::ArenaMax.x - Game::ArenaMin.x)/2 + Game::ArenaMin.x;

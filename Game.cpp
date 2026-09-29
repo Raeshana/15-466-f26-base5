@@ -96,6 +96,7 @@ Player *Game::spawn_player() {
 	player.name = "Player " + std::to_string(next_player_number++);
 
 	player.isVertical = next_player_number%2; // 0 or 1 i.e. false or true
+	player.atExit = false;
 
 	return &player;
 }
@@ -205,13 +206,12 @@ void Game::update(float elapsed) {
 			p1.position.y < DoorMax.y) 
 		{
 			p1.atExit = true;
+			std::cout << p1.name << (" is at the exit") << std::endl; 
 		}
 		else {
 			p1.atExit = false;
 		}
-		allPlayersAtExit = allPlayersAtExit && p1.atExit;
 	}
-
 }
 
 
@@ -240,6 +240,7 @@ void Game::send_state_message(Connection *connection_, Player *connection_player
 		connection.send_buffer.insert(connection.send_buffer.end(), player.name.begin(), player.name.begin() + len);
 
 		connection.send(player.isVertical); // send whether player can move vertically
+		connection.send(player.atExit); // send whether player is at the exit
 	};
 
 	//player count:
@@ -299,6 +300,7 @@ bool Game::recv_state_message(Connection *connection_) {
 			player.name += c;
 		}
 		read(&player.isVertical); // read whether player can move vertically
+		read(&player.atExit); // read whether player is at exit
 	}
 
 	if (at != size) throw std::runtime_error("Trailing data in state message.");
